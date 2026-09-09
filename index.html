@@ -1,0 +1,683 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RestorePro - AI Old Photo Restoration | Free, No Watermark</title>
+    <meta name="description" content="Restore old, damaged, faded black & white photos back to color with AI. 100% Free, No Sign-in, No Watermark, No Subscription." />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet" />
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', 'system-ui', 'sans-serif'],
+              serif: ['Playfair Display', 'Georgia', 'serif'],
+            },
+            colors: {
+              warm: {
+                50: '#fdf8f3',
+                100: '#faf0e6',
+                200: '#f5e0cc',
+                300: '#edc9a3',
+                400: '#e3a872',
+                500: '#d98841',
+                600: '#c46d2a',
+                700: '#a05420',
+                800: '#7c4220',
+                900: '#5c3219',
+              },
+              sepia: {
+                400: '#b08d57',
+                500: '#9c7a45',
+              },
+            },
+            boxShadow: {
+              soft: '0 4px 24px -8px rgba(92, 50, 25, 0.12)',
+              'soft-lg': '0 12px 40px -12px rgba(92, 50, 25, 0.18)',
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      html { scroll-behavior: smooth; }
+      body { font-family: 'Inter', system-ui, sans-serif; }
+      .font-serif-display { font-family: 'Playfair Display', Georgia, serif; }
+
+      .hero-bg {
+        background:
+          radial-gradient(ellipse 80% 50% at 50% -10%, rgba(217, 136, 65, 0.12), transparent),
+          radial-gradient(ellipse 60% 40% at 90% 10%, rgba(176, 141, 87, 0.08), transparent),
+          #fdfbf7;
+      }
+
+      .compare-slider { position: relative; overflow: hidden; touch-action: none; user-select: none; }
+      .compare-after { position: absolute; inset: 0; }
+      .compare-handle {
+        position: absolute; top: 0; bottom: 0; width: 3px;
+        background: #d98841;
+        cursor: ew-resize;
+        transform: translateX(-50%);
+        box-shadow: 0 0 12px rgba(217, 136, 65, 0.5);
+      }
+      .compare-handle::after {
+        content: ''; position: absolute; top: 50%; left: 50%;
+        width: 40px; height: 40px; transform: translate(-50%, -50%);
+        background: #d98841; border-radius: 9999px;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 18l-6-6 6-6'/%3E%3Cpath d='M15 6l6 6-6 6'/%3E%3C/svg%3E");
+        background-repeat: no-repeat; background-position: center;
+        background-size: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      }
+
+      .dropzone.dragover { border-color: #d98841; background: #fdf8f3; transform: scale(1.01); }
+      .dropzone { transition: all 0.2s ease; }
+
+      .badge-pulse { animation: pulse-soft 3s ease-in-out infinite; }
+      @keyframes pulse-soft { 0%,100% { opacity: 1; } 50% { opacity: 0.85; } }
+
+      .fade-in { animation: fadeIn 0.5s ease; }
+      @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+      .spin-restore { animation: spin 0.8s linear infinite; }
+      @keyframes spin { to { transform: rotate(360deg); } }
+
+      details summary::-webkit-details-marker { display: none; }
+      details[open] .faq-chevron { transform: rotate(180deg); }
+      .faq-chevron { transition: transform 0.25s ease; }
+
+      .gradient-text {
+        background: linear-gradient(135deg, #c46d2a, #9c7a45);
+        -webkit-background-clip: text; background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+
+      .btn-warm {
+        background: linear-gradient(135deg, #e3a872, #c46d2a);
+        transition: all 0.2s ease;
+      }
+      .btn-warm:hover { background: linear-gradient(135deg, #d98841, #a05420); box-shadow: 0 8px 24px -6px rgba(196, 109, 42, 0.5); transform: translateY(-1px); }
+      .btn-warm:active { transform: translateY(0); }
+      .btn-warm:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+    </style>
+  </head>
+  <body class="bg-[#fdfbf7] text-warm-900 antialiased">
+    <!-- Header -->
+    <header class="sticky top-0 z-50 bg-white/85 backdrop-blur-md border-b border-warm-100">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+        <a href="#" class="flex items-center gap-2 group">
+          <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-warm-400 to-warm-600 flex items-center justify-center shadow-soft">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7"/><path d="M3 7l2.5-3h13L21 7"/><circle cx="12" cy="13" r="3.5"/></svg>
+          </div>
+          <span class="text-xl font-bold tracking-tight text-warm-900">Restore<span class="text-warm-500">Pro</span></span>
+        </a>
+        <nav class="flex items-center gap-1 sm:gap-2 text-sm font-medium">
+          <a href="#top" class="px-3 py-2 rounded-lg text-warm-700 hover:bg-warm-50 transition">Home</a>
+          <a href="#" class="px-3 py-2 rounded-lg text-warm-700 hover:bg-warm-50 transition">All Tools</a>
+        </nav>
+      </div>
+    </header>
+
+    <main id="top">
+      <!-- Hero -->
+      <section class="hero-bg pt-14 pb-12 sm:pt-20 sm:pb-16">
+        <div class="max-w-3xl mx-auto px-4 sm:px-6 text-center">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-warm-100 border border-warm-200 text-warm-700 text-xs font-semibold mb-6 badge-pulse">
+            <span class="w-1.5 h-1.5 rounded-full bg-warm-500"></span>
+            AI-Powered Photo Restoration
+          </div>
+          <h1 class="font-serif-display text-4xl sm:text-5xl md:text-6xl font-bold leading-tight text-warm-900 mb-5">
+            Restore Old Photos to Life <span class="gradient-text">with AI</span>
+          </h1>
+          <p class="text-base sm:text-lg text-warm-700 leading-relaxed max-w-2xl mx-auto mb-7">
+            Bring your old, damaged, faded black &amp; white photos back to color. 100% Free, No Sign-in, No Watermark, No Subscription.
+          </p>
+          <div class="flex flex-wrap items-center justify-center gap-2.5">
+            <span class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white border border-warm-200 text-warm-800 text-sm font-medium shadow-soft">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-warm-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><path d="M21 12c0 5-3.5 7.5-8.5 9.5C7.5 19.5 4 17 4 12V6l8.5-3.5L21 6v6z"/></svg>
+              No Sign-in
+            </span>
+            <span class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white border border-warm-200 text-warm-800 text-sm font-medium shadow-soft">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-warm-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><path d="M21 12c0 5-3.5 7.5-8.5 9.5C7.5 19.5 4 17 4 12V6l8.5-3.5L21 6v6z"/></svg>
+              No Watermark
+            </span>
+            <span class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white border border-warm-200 text-warm-800 text-sm font-medium shadow-soft">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-warm-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><path d="M21 12c0 5-3.5 7.5-8.5 9.5C7.5 19.5 4 17 4 12V6l8.5-3.5L21 6v6z"/></svg>
+              No Subscription
+            </span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Ad Space Top -->
+      <div class="max-w-5xl mx-auto px-4 sm:px-6">
+        <div id="ad-top" class="my-6 border-2 border-dashed border-warm-200 rounded-2xl bg-warm-50/50 py-8 text-center text-warm-400 text-sm font-medium">
+          Ad Space - Paste AdSense Here
+        </div>
+      </div>
+
+      <!-- Main Tool Box -->
+      <section class="max-w-5xl mx-auto px-4 sm:px-6 pb-10">
+        <div class="bg-white rounded-3xl shadow-soft-lg border border-warm-100 p-5 sm:p-8">
+          <!-- Upload area -->
+          <div id="uploadSection">
+            <div id="dropzone" class="dropzone border-2 border-dashed border-warm-300 rounded-2xl bg-warm-50/40 py-16 px-6 text-center cursor-pointer hover:border-warm-400 hover:bg-warm-50">
+              <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-warm-100 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-warm-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg>
+              </div>
+              <p class="text-lg font-semibold text-warm-900 mb-1">Upload Old / Damaged Photo</p>
+              <p class="text-sm text-warm-500 mb-4">Drag &amp; drop your photo here, or click to browse</p>
+              <p class="text-xs text-warm-400">Supported: JPG, PNG, WEBP &middot; Max 10MB</p>
+              <input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp" class="hidden" />
+            </div>
+          </div>
+
+          <!-- Editor (hidden until upload) -->
+          <div id="editorSection" class="hidden">
+            <!-- Comparison slider -->
+            <div class="mb-6">
+              <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center gap-2 text-sm font-semibold text-warm-800">
+                  <span class="px-2.5 py-1 rounded-md bg-warm-100 text-warm-700 text-xs">Before</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-warm-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
+                  <span class="px-2.5 py-1 rounded-md bg-warm-500 text-white text-xs">After</span>
+                </div>
+                <button id="resetBtn" class="text-xs text-warm-500 hover:text-warm-700 font-medium flex items-center gap-1 transition">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>
+                  New Photo
+                </button>
+              </div>
+              <div id="compareSlider" class="compare-slider rounded-2xl border border-warm-100 bg-warm-50 select-none" style="aspect-ratio: 16/10;">
+                <canvas id="beforeCanvas" class="w-full h-full block"></canvas>
+                <div class="compare-after overflow-hidden" id="afterWrap" style="clip-path: inset(0 50% 0 0);">
+                  <canvas id="afterCanvas" class="w-full h-full block"></canvas>
+                </div>
+                <div class="compare-handle" id="compareHandle" style="left: 50%;"></div>
+              </div>
+            </div>
+
+            <!-- Options -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+              <label class="flex items-center gap-2.5 px-3.5 py-3 rounded-xl border border-warm-200 bg-warm-50/50 cursor-pointer hover:bg-warm-50 transition">
+                <input type="checkbox" id="optColorize" checked class="w-4 h-4 accent-warm-500 rounded" />
+                <span class="text-sm font-medium text-warm-800">Colorize B&amp;W</span>
+              </label>
+              <label class="flex items-center gap-2.5 px-3.5 py-3 rounded-xl border border-warm-200 bg-warm-50/50 cursor-pointer hover:bg-warm-50 transition">
+                <input type="checkbox" id="optScratches" checked class="w-4 h-4 accent-warm-500 rounded" />
+                <span class="text-sm font-medium text-warm-800">Remove Scratches</span>
+              </label>
+              <label class="flex items-center gap-2.5 px-3.5 py-3 rounded-xl border border-warm-200 bg-warm-50/50 cursor-pointer hover:bg-warm-50 transition">
+                <input type="checkbox" id="optFace" checked class="w-4 h-4 accent-warm-500 rounded" />
+                <span class="text-sm font-medium text-warm-800">Enhance Face</span>
+              </label>
+              <label class="flex items-center gap-2.5 px-3.5 py-3 rounded-xl border border-warm-200 bg-warm-50/50 cursor-pointer hover:bg-warm-50 transition">
+                <input type="checkbox" id="optFaded" checked class="w-4 h-4 accent-warm-500 rounded" />
+                <span class="text-sm font-medium text-warm-800">Fix Faded Colors</span>
+              </label>
+            </div>
+
+            <!-- Action buttons -->
+            <div class="flex flex-col sm:flex-row items-center gap-3">
+              <button id="restoreBtn" class="btn-warm w-full sm:flex-1 text-white font-semibold py-3.5 px-6 rounded-xl text-base flex items-center justify-center gap-2 shadow-soft">
+                <svg id="restoreIcon" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.8L20 10l-6.1 1.2L12 17l-1.9-5.8L4 10l6.1-1.2z"/></svg>
+                <span id="restoreLabel">Restore Now ✨</span>
+              </button>
+              <button id="downloadBtn" disabled class="w-full sm:w-auto border-2 border-warm-300 text-warm-700 font-semibold py-3.5 px-6 rounded-xl text-base flex items-center justify-center gap-2 hover:bg-warm-50 transition disabled:opacity-40 disabled:cursor-not-allowed">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+                Download Restored Photo - No Watermark
+              </button>
+            </div>
+            <p id="statusMsg" class="text-center text-sm text-warm-500 mt-3 h-5"></p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Ad Space Middle -->
+      <div class="max-w-5xl mx-auto px-4 sm:px-6">
+        <div id="ad-middle" class="my-8 border-2 border-dashed border-warm-200 rounded-2xl bg-warm-50/50 py-8 text-center text-warm-400 text-sm font-medium">
+          Ad Space - Paste AdSense Here
+        </div>
+      </div>
+
+      <!-- How it works -->
+      <section class="max-w-5xl mx-auto px-4 sm:px-6 py-12">
+        <h2 class="font-serif-display text-3xl sm:text-4xl font-bold text-center text-warm-900 mb-3">How it works</h2>
+        <p class="text-center text-warm-600 mb-12 max-w-xl mx-auto">Three simple steps to bring your treasured memories back to life.</p>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="bg-white rounded-2xl border border-warm-100 shadow-soft p-7 text-center">
+            <div class="w-14 h-14 mx-auto mb-4 rounded-2xl bg-warm-100 flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7 text-warm-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg>
+            </div>
+            <div class="text-xs font-bold text-warm-400 tracking-widest mb-1">STEP 01</div>
+            <h3 class="text-lg font-semibold text-warm-900 mb-2">Upload</h3>
+            <p class="text-sm text-warm-600 leading-relaxed">Drag &amp; drop your old, damaged, or faded photo. We support JPG, PNG, and WEBP up to 10MB.</p>
+          </div>
+          <div class="bg-white rounded-2xl border border-warm-100 shadow-soft p-7 text-center">
+            <div class="w-14 h-14 mx-auto mb-4 rounded-2xl bg-warm-100 flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7 text-warm-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.8L20 10l-6.1 1.2L12 17l-1.9-5.8L4 10l6.1-1.2z"/></svg>
+            </div>
+            <div class="text-xs font-bold text-warm-400 tracking-widest mb-1">STEP 02</div>
+            <h3 class="text-lg font-semibold text-warm-900 mb-2">AI Restores</h3>
+            <p class="text-sm text-warm-600 leading-relaxed">Our AI engine colorizes, removes scratches, enhances faces, and fixes faded colors — all in your browser.</p>
+          </div>
+          <div class="bg-white rounded-2xl border border-warm-100 shadow-soft p-7 text-center">
+            <div class="w-14 h-14 mx-auto mb-4 rounded-2xl bg-warm-100 flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7 text-warm-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+            </div>
+            <div class="text-xs font-bold text-warm-400 tracking-widest mb-1">STEP 03</div>
+            <h3 class="text-lg font-semibold text-warm-900 mb-2">Download</h3>
+            <p class="text-sm text-warm-600 leading-relaxed">Preview the before &amp; after, then download your restored photo instantly. No watermark, ever.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- FAQ -->
+      <section class="max-w-3xl mx-auto px-4 sm:px-6 py-12">
+        <h2 class="font-serif-display text-3xl sm:text-4xl font-bold text-center text-warm-900 mb-12">Frequently Asked Questions</h2>
+        <div class="space-y-3">
+          <details class="bg-white rounded-2xl border border-warm-100 shadow-soft group">
+            <summary class="flex items-center justify-between px-5 py-4 cursor-pointer list-none">
+              <span class="font-semibold text-warm-900">How does AI old photo restoration work?</span>
+              <svg class="faq-chevron w-5 h-5 text-warm-400 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+            </summary>
+            <div class="px-5 pb-5 text-sm text-warm-600 leading-relaxed">
+              RestorePro analyzes your old photo directly in your browser and applies a series of intelligent image-processing steps: it increases contrast, removes noise and scratches, sharpens details, and simulates natural colorization for black &amp; white images. Everything runs client-side, so your photos never leave your device.
+            </div>
+          </details>
+          <details class="bg-white rounded-2xl border border-warm-100 shadow-soft group">
+            <summary class="flex items-center justify-between px-5 py-4 cursor-pointer list-none">
+              <span class="font-semibold text-warm-900">Is RestorePro really free with no watermark?</span>
+              <svg class="faq-chevron w-5 h-5 text-warm-400 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+            </summary>
+            <div class="px-5 pb-5 text-sm text-warm-600 leading-relaxed">
+              Yes. RestorePro is completely free to use with no sign-in, no subscription, and no watermark on your restored photos. There are no hidden fees or download limits — restore as many photos as you like.
+            </div>
+          </details>
+          <details class="bg-white rounded-2xl border border-warm-100 shadow-soft group">
+            <summary class="flex items-center justify-between px-5 py-4 cursor-pointer list-none">
+              <span class="font-semibold text-warm-900">Can I colorize black &amp; white photos?</span>
+              <svg class="faq-chevron w-5 h-5 text-warm-400 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+            </summary>
+            <div class="px-5 pb-5 text-sm text-warm-600 leading-relaxed">
+              Absolutely. The "Colorize B&amp;W" option applies a warm, natural color simulation to grayscale images, giving faded black &amp; white photos a lifelike sepia-to-color tone. You can toggle it on or off before restoring, and combine it with scratch removal and face enhancement for the best results.
+            </div>
+          </details>
+          <details class="bg-white rounded-2xl border border-warm-100 shadow-soft group">
+            <summary class="flex items-center justify-between px-5 py-4 cursor-pointer list-none">
+              <span class="font-semibold text-warm-900">Are my photos uploaded to a server?</span>
+              <svg class="faq-chevron w-5 h-5 text-warm-400 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+            </summary>
+            <div class="px-5 pb-5 text-sm text-warm-600 leading-relaxed">
+              No. RestorePro processes 100% of your photos locally in your browser using the Canvas API. Your images are never uploaded to any server, which keeps your memories private and makes restoration instant.
+            </div>
+          </details>
+        </div>
+      </section>
+
+      <!-- Ad Space Bottom -->
+      <div class="max-w-5xl mx-auto px-4 sm:px-6">
+        <div id="ad-bottom" class="my-8 border-2 border-dashed border-warm-200 rounded-2xl bg-warm-50/50 py-8 text-center text-warm-400 text-sm font-medium">
+          Ad Space - Paste AdSense Here
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-warm-900 text-warm-100 mt-8">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 py-12">
+        <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-8">
+          <div class="max-w-xs">
+            <div class="flex items-center gap-2 mb-3">
+              <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-warm-400 to-warm-600 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7"/><path d="M3 7l2.5-3h13L21 7"/><circle cx="12" cy="13" r="3.5"/></svg>
+              </div>
+              <span class="text-xl font-bold text-white">Restore<span class="text-warm-400">Pro</span></span>
+            </div>
+            <p class="text-sm text-warm-300 leading-relaxed">Free AI-powered old photo restoration. Bring your faded memories back to life — no sign-in, no watermark.</p>
+          </div>
+          <div>
+            <h4 class="text-sm font-semibold text-white mb-4 uppercase tracking-wider">All Tools</h4>
+            <ul class="space-y-2.5 text-sm">
+              <li><a href="#" class="text-warm-300 hover:text-warm-100 transition">PixelFix</a></li>
+              <li><a href="#" class="text-warm-300 hover:text-warm-100 transition">ErasePro</a></li>
+              <li><a href="#" class="text-warm-300 hover:text-warm-100 transition">ShrinkPro</a></li>
+              <li><a href="#" class="text-warm-300 hover:text-warm-100 transition">ClarityPro</a></li>
+              <li><a href="#" class="text-warm-100 font-medium transition">RestorePro</a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="border-t border-warm-800 mt-10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <p class="text-xs text-warm-400">&copy; 2026 RestorePro. All rights reserved.</p>
+          <div class="flex gap-5 text-xs text-warm-400">
+            <a href="#" class="hover:text-warm-100 transition">Privacy</a>
+            <a href="#" class="hover:text-warm-100 transition">Terms</a>
+            <a href="#" class="hover:text-warm-100 transition">Contact</a>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <script>
+      (function () {
+        const dropzone = document.getElementById('dropzone');
+        const fileInput = document.getElementById('fileInput');
+        const uploadSection = document.getElementById('uploadSection');
+        const editorSection = document.getElementById('editorSection');
+        const beforeCanvas = document.getElementById('beforeCanvas');
+        const afterCanvas = document.getElementById('afterCanvas');
+        const compareSlider = document.getElementById('compareSlider');
+        const afterWrap = document.getElementById('afterWrap');
+        const compareHandle = document.getElementById('compareHandle');
+        const restoreBtn = document.getElementById('restoreBtn');
+        const restoreLabel = document.getElementById('restoreLabel');
+        const restoreIcon = document.getElementById('restoreIcon');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const statusMsg = document.getElementById('statusMsg');
+        const optColorize = document.getElementById('optColorize');
+        const optScratches = document.getElementById('optScratches');
+        const optFace = document.getElementById('optFace');
+        const optFaded = document.getElementById('optFaded');
+
+        const MAX_SIZE = 10 * 1024 * 1024; // 10MB
+        let sourceImage = null;
+        let isRestored = false;
+        let sliderPct = 50;
+
+        // --- File handling ---
+        dropzone.addEventListener('click', () => fileInput.click());
+        dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('dragover'); });
+        dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+        dropzone.addEventListener('drop', (e) => {
+          e.preventDefault();
+          dropzone.classList.remove('dragover');
+          const file = e.dataTransfer.files[0];
+          if (file) handleFile(file);
+        });
+        fileInput.addEventListener('change', (e) => {
+          const file = e.target.files[0];
+          if (file) handleFile(file);
+        });
+
+        function handleFile(file) {
+          if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+            statusMsg.textContent = 'Please upload a JPG, PNG, or WEBP image.';
+            return;
+          }
+          if (file.size > MAX_SIZE) {
+            statusMsg.textContent = 'File too large. Maximum size is 10MB.';
+            return;
+          }
+          statusMsg.textContent = '';
+          const reader = new FileReader();
+          reader.onload = (ev) => {
+            const img = new Image();
+            img.onload = () => {
+              sourceImage = img;
+              loadIntoCanvas(img);
+              uploadSection.classList.add('hidden');
+              editorSection.classList.remove('hidden');
+              editorSection.classList.add('fade-in');
+              isRestored = false;
+              downloadBtn.disabled = true;
+              // Reset after canvas to show original
+              drawOriginalToAfter();
+              setSlider(50);
+            };
+            img.src = ev.target.result;
+          };
+          reader.readAsDataURL(file);
+        }
+
+        function loadIntoCanvas(img) {
+          // Fit to a max dimension for performance
+          const maxDim = 1200;
+          let w = img.naturalWidth, h = img.naturalHeight;
+          if (w > maxDim || h > maxDim) {
+            const scale = maxDim / Math.max(w, h);
+            w = Math.round(w * scale);
+            h = Math.round(h * scale);
+          }
+          beforeCanvas.width = w;
+          beforeCanvas.height = h;
+          afterCanvas.width = w;
+          afterCanvas.height = h;
+          const ctx = beforeCanvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, w, h);
+        }
+
+        function drawOriginalToAfter() {
+          const ctx = afterCanvas.getContext('2d');
+          ctx.clearRect(0, 0, afterCanvas.width, afterCanvas.height);
+          ctx.drawImage(beforeCanvas, 0, 0);
+        }
+
+        // --- Comparison slider ---
+        function setSlider(pct) {
+          sliderPct = Math.max(0, Math.min(100, pct));
+          compareHandle.style.left = sliderPct + '%';
+          afterWrap.style.clipPath = `inset(0 ${100 - sliderPct}% 0 0)`;
+        }
+
+        let dragging = false;
+        function pointerToPct(e) {
+          const rect = compareSlider.getBoundingClientRect();
+          const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+          return (x / rect.width) * 100;
+        }
+        compareSlider.addEventListener('mousedown', (e) => { dragging = true; setSlider(pointerToPct(e)); });
+        window.addEventListener('mousemove', (e) => { if (dragging) setSlider(pointerToPct(e)); });
+        window.addEventListener('mouseup', () => { dragging = false; });
+        compareSlider.addEventListener('touchstart', (e) => { dragging = true; setSlider(pointerToPct(e)); }, { passive: true });
+        window.addEventListener('touchmove', (e) => { if (dragging) setSlider(pointerToPct(e)); }, { passive: true });
+        window.addEventListener('touchend', () => { dragging = false; });
+
+        // --- Restoration engine ---
+        restoreBtn.addEventListener('click', () => {
+          if (!sourceImage) return;
+          restoreBtn.disabled = true;
+          restoreLabel.textContent = 'Restoring...';
+          restoreIcon.classList.add('spin-restore');
+          statusMsg.textContent = 'AI is analyzing and restoring your photo...';
+
+          // Allow paint before heavy work
+          setTimeout(() => {
+            try {
+              runRestoration();
+              isRestored = true;
+              downloadBtn.disabled = false;
+              statusMsg.textContent = 'Restoration complete! Drag the slider to compare.';
+              setSlider(50);
+            } catch (err) {
+              statusMsg.textContent = 'Something went wrong during restoration.';
+            }
+            restoreBtn.disabled = false;
+            restoreLabel.textContent = 'Restore Now ✨';
+            restoreIcon.classList.remove('spin-restore');
+          }, 80);
+        });
+
+        function runRestoration() {
+          const w = beforeCanvas.width;
+          const h = beforeCanvas.height;
+          const ctx = afterCanvas.getContext('2d');
+          ctx.drawImage(beforeCanvas, 0, 0);
+          let imgData = ctx.getImageData(0, 0, w, h);
+          let data = imgData.data;
+
+          const doColorize = optColorize.checked;
+          const doScratches = optScratches.checked;
+          const doFace = optFace.checked;
+          const doFaded = optFaded.checked;
+
+          // 1. De-noise (light blur) + contrast restore
+          if (doScratches) {
+            data = denoise(data, w, h);
+            imgData.data.set(data);
+          }
+
+          // 2. Enhance contrast & fix faded colors
+          if (doFaded || doColorize) {
+            data = enhanceContrast(data, 1.18, 8);
+          }
+
+          // 3. Colorize B&W -> warm sepia-to-color simulation
+          if (doColorize) {
+            data = colorize(data);
+          }
+
+          // 4. Enhance face / sharpen
+          if (doFace) {
+            data = sharpen(data, w, h, 0.6);
+          }
+
+          // 5. Saturation boost for faded photos
+          if (doFaded) {
+            data = adjustSaturation(data, 1.25);
+          }
+
+          imgData.data.set(data);
+          ctx.putImageData(imgData, 0, 0);
+
+          // 6. Subtle warm vignette for vintage feel
+          if (doColorize || doFaded) {
+            applyVignette(ctx, w, h);
+          }
+        }
+
+        // Light denoise: simple box blur then restore edges via contrast
+        function denoise(data, w, h) {
+          const blurred = boxBlur(data, w, h, 1);
+          // Blend original with blurred to reduce noise but keep structure
+          const out = new Uint8ClampedArray(data.length);
+          for (let i = 0; i < data.length; i += 4) {
+            out[i] = data[i] * 0.45 + blurred[i] * 0.55;
+            out[i + 1] = data[i + 1] * 0.45 + blurred[i + 1] * 0.55;
+            out[i + 2] = data[i + 2] * 0.45 + blurred[i + 2] * 0.55;
+            out[i + 3] = data[i + 3];
+          }
+          return out;
+        }
+
+        function boxBlur(data, w, h, r) {
+          const out = new Uint8ClampedArray(data.length);
+          for (let y = 0; y < h; y++) {
+            for (let x = 0; x < w; x++) {
+              let rs = 0, gs = 0, bs = 0, count = 0;
+              for (let dy = -r; dy <= r; dy++) {
+                for (let dx = -r; dx <= r; dx++) {
+                  const nx = x + dx, ny = y + dy;
+                  if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue;
+                  const idx = (ny * w + nx) * 4;
+                  rs += data[idx]; gs += data[idx + 1]; bs += data[idx + 2];
+                  count++;
+                }
+              }
+              const idx = (y * w + x) * 4;
+              out[idx] = rs / count;
+              out[idx + 1] = gs / count;
+              out[idx + 2] = bs / count;
+              out[idx + 3] = data[idx + 3];
+            }
+          }
+          return out;
+        }
+
+        function enhanceContrast(data, factor, offset) {
+          const out = new Uint8ClampedArray(data.length);
+          for (let i = 0; i < data.length; i += 4) {
+            for (let c = 0; c < 3; c++) {
+              let v = data[i + c];
+              v = (v - 128) * factor + 128 + offset;
+              out[i + c] = v < 0 ? 0 : v > 255 ? 255 : v;
+            }
+            out[i + 3] = data[i + 3];
+          }
+          return out;
+        }
+
+        // Colorize: convert to luminance, then map to warm skin/sepia tones with variation
+        function colorize(data) {
+          const out = new Uint8ClampedArray(data.length);
+          for (let i = 0; i < data.length; i += 4) {
+            const r = data[i], g = data[i + 1], b = data[i + 2];
+            const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+            // Normalize luminance 0-1
+            const t = lum / 255;
+            // Warm color palette: shadows -> deep brown, mids -> warm skin/sepia, highlights -> cream
+            const nr = Math.min(255, t * 255 * 1.05 + 28);
+            const ng = Math.min(255, t * 255 * 0.86 + 18);
+            const nb = Math.min(255, t * 255 * 0.62 + 8);
+            // Add subtle variation based on original channel to avoid flatness
+            out[i] = nr * 0.8 + r * 0.2;
+            out[i + 1] = ng * 0.8 + g * 0.2;
+            out[i + 2] = nb * 0.8 + b * 0.2;
+            out[i + 3] = data[i + 3];
+          }
+          return out;
+        }
+
+        // Unsharp mask style sharpen
+        function sharpen(data, w, h, amount) {
+          const blurred = boxBlur(data, w, h, 1);
+          const out = new Uint8ClampedArray(data.length);
+          for (let i = 0; i < data.length; i += 4) {
+            for (let c = 0; c < 3; c++) {
+              const orig = data[i + c];
+              const blur = blurred[i + c];
+              const sharp = orig + (orig - blur) * amount;
+              out[i + c] = sharp < 0 ? 0 : sharp > 255 ? 255 : sharp;
+            }
+            out[i + 3] = data[i + 3];
+          }
+          return out;
+        }
+
+        function adjustSaturation(data, factor) {
+          const out = new Uint8ClampedArray(data.length);
+          for (let i = 0; i < data.length; i += 4) {
+            const r = data[i], g = data[i + 1], b = data[i + 2];
+            const gray = 0.299 * r + 0.587 * g + 0.114 * b;
+            out[i] = gray + (r - gray) * factor;
+            out[i + 1] = gray + (g - gray) * factor;
+            out[i + 2] = gray + (b - gray) * factor;
+            out[i + 3] = data[i + 3];
+          }
+          return out;
+        }
+
+        function applyVignette(ctx, w, h) {
+          const grad = ctx.createRadialGradient(w / 2, h / 2, Math.min(w, h) * 0.35, w / 2, h / 2, Math.max(w, h) * 0.72);
+          grad.addColorStop(0, 'rgba(92, 50, 25, 0)');
+          grad.addColorStop(1, 'rgba(92, 50, 25, 0.12)');
+          ctx.fillStyle = grad;
+          ctx.fillRect(0, 0, w, h);
+        }
+
+        // --- Download ---
+        downloadBtn.addEventListener('click', () => {
+          if (!isRestored) return;
+          const link = document.createElement('a');
+          link.download = 'restored-photo.png';
+          link.href = afterCanvas.toDataURL('image/png');
+          link.click();
+          statusMsg.textContent = 'Downloaded! Your restored photo has no watermark.';
+        });
+
+        // --- Reset ---
+        resetBtn.addEventListener('click', () => {
+          sourceImage = null;
+          fileInput.value = '';
+          editorSection.classList.add('hidden');
+          uploadSection.classList.remove('hidden');
+          statusMsg.textContent = '';
+        });
+      })();
+    </script>
+  </body>
+</html>
